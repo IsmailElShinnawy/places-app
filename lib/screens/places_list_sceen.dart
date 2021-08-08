@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import './add_place_screen.dart';
+import '../providers/great_places.dart';
 
 class PlacesListScreen extends StatelessWidget {
   @override
@@ -8,13 +12,44 @@ class PlacesListScreen extends StatelessWidget {
         title: Text('Your Places'),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).pushNamed(AddPlaceScreen.routeName);
+            },
             icon: Icon(Icons.add),
           ),
         ],
       ),
-      body: Center(
-        child: CircularProgressIndicator(),
+      body: FutureBuilder(
+        future: Provider.of<GreatPlaces>(context, listen: false)
+            .fetchAndSetPlaces(),
+        builder: (child, dataSnapshot) =>
+            dataSnapshot.connectionState == ConnectionState.waiting
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Consumer<GreatPlaces>(
+                    child: Center(
+                      child: Text(
+                        'You did not add any places yet',
+                      ),
+                    ),
+                    builder: (ctx, greatPlaces, child) =>
+                        greatPlaces.items.length == 0
+                            ? child
+                            : ListView.builder(
+                                itemBuilder: (ctx, idx) => ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundImage:
+                                        FileImage(greatPlaces.items[idx].image),
+                                  ),
+                                  title: Text(greatPlaces.items[idx].title),
+                                  onTap: () {
+                                    // go to details page
+                                  },
+                                ),
+                                itemCount: greatPlaces.items.length,
+                              ),
+                  ),
       ),
     );
   }
